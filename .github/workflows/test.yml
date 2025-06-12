@@ -2,17 +2,14 @@ name: Retest Action on PR Comment
 
 on:
   issue_comment:
-    types: [created]
+    types: [ created ]
 
 permissions:
   contents: read
 
 jobs:
   retest:
-    if: |
-      ${{
-         github.event.issue.pull_request
-      }}
+    if: ${{ !github.event.issue.pull_request }}
     name: Retest
     runs-on: ubuntu-latest
     permissions:
