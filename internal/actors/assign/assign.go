@@ -1,7 +1,8 @@
 package assign
 
 import (
-	"encoding/json"
+	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/ShyunnY/actbot/internal/actors"
@@ -34,21 +35,6 @@ func NewAssignActor(ghClient *github.Client, logger *slog.Logger) actors.Actor {
 }
 
 func (a *actor) Handler() error {
-	a.logger.Infof("actor %s started processing events", a.Name())
-	a.logger.Info(a.event)
-	output, err := json.Marshal(a.event)
-	if err != nil {
-		a.logger.Error(err)
-	}
-	a.logger.Info(string(output))
-
-	// 注意，issue 可以分配给多个人，并且通过 assignees 字段来确定（在 add 中就需要进一步确认了）
-
-	// 当然还需要忽略 pr，因为 pr 也是一个 issue（这个可以直接判断出来）
-	// 根据 add 来决定执行：
-	// 需要根据当前登陆的用户来执行操作
-	//	*add：查看当前的 issue 是否已经被分配了（还有！是否是分配给自己了），如果被分配了则需要写入一个 comment。如果存在 help wanted label，还需要移除
-	//	*remove：查看当前的 issue 是否已经被分配了，如果没分配了则需要写入一个 comment。如果不存在 help wanted label，还需要新增
 	var (
 		issue     = a.event.GetIssue()
 		comment   = a.event.GetComment()
@@ -57,21 +43,66 @@ func (a *actor) Handler() error {
 		assignees = issue.Assignees
 	)
 
+	a.logger.Infof("actor %s started processing events, issue number: %d", a.Name(), issue.GetNumber())
+	owner, repoName := actors.GetOwnerRepo(repo.GetFullName())
 	if a.add {
+		// if it has been assigned to the login user, we will write back a comment
 		if isAssignLoginUser(loginUser, assignees) {
-			// todo: 不允许分配, 机器人需要写一个评论并 @ 用户
+			err := actors.AddComment(
+				a.ghClient,
+				fmt.Sprintf("@%s %s", loginUser.GetLogin(), "The issue has been assigned to you. Please do not attempt to assign it"),
+				repo.GetFullName(),
+				issue.GetNumber(),
+			)
+			return err
 		}
 
-		// 执行分配
-		owner := repo.Owner.Name
-		repoName := repo.Name
+		if _, _, err := a.ghClient.Issues.AddAssignees(
+			context.Background(),
+			owner,
+			repoName,
+			issue.GetNumber(),
+			[]string{loginUser.GetLogin()},
+		); err != nil {
+			return err
+		}
 
-		a.logger.Info("repo = %s, owner = %s", repoName, owner)
-		//_, _, err := a.ghClient.Issues.AddAssignees(context.Background(), *owner, *repoName, *issue.Number, []string{loginUser.GetLogin()})
-		//if err != nil {
-		//	return err
-		//}
+		if err := actors.AddReaction(a.ghClient, "+1", repo.GetFullName(), comment.GetID()); err != nil {
+			return err
+		}
 
+		if err := actors.RemoveLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), actors.HelpWantedLabel); err != nil {
+			return err
+		}
+
+		slog.Infof("assigned issue to %s", loginUser.GetLogin())
+	} else {
+		// if it has been unassigned to the login user, we will write back a comment
+		if !isAssignLoginUser(loginUser, assignees) {
+			err := actors.AddComment(
+				a.ghClient,
+				fmt.Sprintf("@%s %s", loginUser.GetLogin(), "This issue is no assigned to you. Please do not try to unassign it"),
+				repo.GetFullName(),
+				issue.GetNumber(),
+			)
+			return err
+		}
+
+		if _, _, err := a.ghClient.Issues.RemoveAssignees(
+			context.Background(),
+			owner,
+			repoName,
+			issue.GetNumber(),
+			[]string{loginUser.GetLogin()},
+		); err != nil {
+			return err
+		}
+
+		if err := actors.AddLabelToIssue(a.ghClient, repoName, issue.GetNumber(), actors.HelpWantedLabel); err != nil {
+			return err
+		}
+
+		slog.Infof("unassigned issue to %s", loginUser.GetLogin())
 	}
 
 	return nil
@@ -103,6 +134,7 @@ func (a *actor) Capture(event actors.GenericEvent) bool {
 			a.add = false
 		}
 	}
+	a.event = commentEvent
 
 	return true
 }

@@ -1,5 +1,9 @@
 package actors
 
+const (
+	HelpWantedLabel = "help wanted"
+)
+
 type Actor interface {
 	Handler() error
 
