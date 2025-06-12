@@ -111,12 +111,13 @@ func initGitHubClient(ghToken string) (*github.Client, error) {
 		return nil, errors.New("empty github token")
 	}
 
-	oauthConfig := oauth2.Config{Endpoint: oauthGh.Endpoint}
+	oauthConfig := oauth2.Config{
+		Endpoint: oauthGh.Endpoint,
+	}
 	oClient := oauthConfig.Client(
 		context.Background(),
 		&oauth2.Token{AccessToken: ghToken},
 	)
-
 	ghClient := github.NewClient(oClient)
 
 	return ghClient, nil

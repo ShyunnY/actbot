@@ -43,7 +43,7 @@ func (a *actor) Handler() error {
 		assignees = issue.Assignees
 	)
 
-	a.logger.Infof("actor %s started processing events, issue number: %d", a.Name(), issue.GetNumber())
+	a.logger.Infof("actor %s started processing events, issue number: #%d", a.Name(), issue.GetNumber())
 	owner, repoName := actors.GetOwnerRepo(repo.GetFullName())
 	if a.add {
 		// if it has been assigned to the login user, we will write back a comment
@@ -67,15 +67,17 @@ func (a *actor) Handler() error {
 			return err
 		}
 
-		if err := actors.AddReaction(a.ghClient, "+1", repo.GetFullName(), comment.GetID()); err != nil {
+		if err := actors.AddReaction(a.ghClient, actors.CommendReaction, repo.GetFullName(), comment.GetID()); err != nil {
 			return err
 		}
+		slog.Infof("add a reaction '%s' to comment %d of issue #%d", actors.CommendReaction, comment.GetID(), issue.GetNumber())
 
 		if err := actors.RemoveLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), actors.HelpWantedLabel); err != nil {
 			return err
 		}
+		slog.Infof("remove '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
 
-		slog.Infof("assigned issue to %s", loginUser.GetLogin())
+		slog.Infof("assigned issue to '%s'", loginUser.GetLogin())
 	} else {
 		// if it has been unassigned to the login user, we will write back a comment
 		if !isAssignLoginUser(loginUser, assignees) {
@@ -101,8 +103,9 @@ func (a *actor) Handler() error {
 		if err := actors.AddLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), actors.HelpWantedLabel); err != nil {
 			return err
 		}
+		slog.Infof("add '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
 
-		slog.Infof("unassigned issue to %s", loginUser.GetLogin())
+		slog.Infof("unassigned issue to '%s'", loginUser.GetLogin())
 	}
 
 	return nil
