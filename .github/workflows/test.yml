@@ -20,5 +20,5 @@ jobs:
         uses: actions/checkout@v2
       - uses: ./
         name: Actbot Action
-#        with:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

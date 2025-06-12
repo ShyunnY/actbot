@@ -28,7 +28,7 @@ var (
 
 func Setup() error {
 	var (
-		ghToken     = os.Getenv("GITHUB_TOKEN")
+		ghToken     = os.Getenv("token")
 		ghEvent     = os.Getenv("GITHUB_EVENT_NAME")
 		ghEventPath = os.Getenv("GITHUB_EVENT_PATH")
 	)

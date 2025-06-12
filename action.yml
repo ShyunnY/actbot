@@ -5,11 +5,11 @@ runs:
   using: "docker"
   image: "Dockerfile"
   args:
-    - ${{ inputs.GITHUB_TOKEN }}
+    - ${{ inputs.token }}
 branding:
   color: blue
   icon: activity
 inputs:
-  GITHUB_TOKEN:
+  token:
     default: ${{ github.token }}
     description: "github token"
