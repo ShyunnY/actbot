@@ -54,6 +54,8 @@ func dispatch(ghEvent, ghEventPath string, ghClient *github.Client) error {
 		return err
 	}
 
+	slog.Println(string(ghEventBytes))
+
 	switch ghEvent {
 	case string(IssueComment):
 		var (
