@@ -1,0 +1,15 @@
+name: "Actbot Action"
+description: "A simple GitHub Action"
+author: "ShyunnY"
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.GITHUB_TOKEN }}
+branding:
+  color: blue
+  icon: activity
+inputs:
+  GITHUB_TOKEN:
+    default: ${{ github.token }}
+    description: "github token"
