@@ -26,6 +26,6 @@ func TestDemo2(t *testing.T) {
 	gitHubClient, err := initGitHubClient(ghToken)
 	assert.NoError(t, err)
 
-	err = actors.RemoveLabelToIssue(gitHubClient, "ShyunnY/actbot", 2, "help wanted")
+	err = actors.RemoveLabelToIssue(gitHubClient, "ShyunnY/actbot", 3, actors.HelpWantedLabel)
 	assert.NoError(t, err)
 }

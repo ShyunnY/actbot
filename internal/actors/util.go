@@ -54,7 +54,7 @@ func RemoveLabelToIssue(ghClient *github.Client, fullName string, issueNumber in
 	switch {
 	case err != nil:
 		return err
-	case existLabel != nil:
+	case existLabel == nil:
 		return nil
 	default:
 	}

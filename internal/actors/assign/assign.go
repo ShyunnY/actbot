@@ -98,7 +98,7 @@ func (a *actor) Handler() error {
 			return err
 		}
 
-		if err := actors.AddLabelToIssue(a.ghClient, repoName, issue.GetNumber(), actors.HelpWantedLabel); err != nil {
+		if err := actors.AddLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), actors.HelpWantedLabel); err != nil {
 			return err
 		}
 
@@ -120,6 +120,12 @@ func (a *actor) Capture(event actors.GenericEvent) bool {
 	if commentEvent.Issue.IsPullRequest() {
 		return false
 	}
+
+	// do not handle closed issues
+	if !commentEvent.Issue.GetClosedAt().IsZero() || commentEvent.Issue.ClosedBy != nil {
+		return false
+	}
+
 	comment := commentEvent.GetComment()
 	if comment == nil || len(comment.GetBody()) == 0 {
 		return false
