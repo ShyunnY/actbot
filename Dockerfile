@@ -32,6 +32,4 @@ COPY --from=builder /app/actbot /app/actbot
 
 RUN chmod +x /app/actbot
 
-RUN ls -l /app/actbot
-
 ENTRYPOINT ["/app/actbot"]
