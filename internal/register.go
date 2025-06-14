@@ -3,6 +3,7 @@ package internal
 import (
 	"github.com/ShyunnY/actbot/internal/actors"
 	"github.com/ShyunnY/actbot/internal/actors/assign"
+	"github.com/ShyunnY/actbot/internal/actors/retest"
 	"github.com/google/go-github/v72/github"
 
 	"github.com/gookit/slog"
@@ -20,6 +21,7 @@ var (
 	actorMap = map[GitHubEventType][]RegisterFn{
 		IssueComment: {
 			assign.NewAssignActor,
+			retest.NewRetestActor,
 		},
 	}
 )

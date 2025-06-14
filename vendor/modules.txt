@@ -1,22 +1,6 @@
-# github.com/cilium/ebpf v0.18.0
-## explicit; go 1.23.0
-# github.com/cosiner/argv v0.1.0
-## explicit; go 1.13
-# github.com/cpuguy83/go-md2man/v2 v2.0.7
-## explicit; go 1.12
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/derekparker/trie v0.0.0-20230829180723-39f4de51ef7d
-## explicit; go 1.19
-# github.com/go-delve/delve v1.24.2
-## explicit; go 1.21
-# github.com/go-delve/liner v1.2.3-0.20231231155935-4726ab1d7f62
-## explicit
-# github.com/go-logr/logr v1.4.3
-## explicit; go 1.18
-# github.com/google/go-dap v0.12.0
-## explicit; go 1.18
 # github.com/google/go-github/v72 v72.0.0
 ## explicit; go 1.23.0
 github.com/google/go-github/v72/github
@@ -62,30 +46,12 @@ github.com/gookit/slog
 github.com/gookit/slog/bufwrite
 github.com/gookit/slog/handler
 github.com/gookit/slog/rotatefile
-# github.com/hashicorp/golang-lru v1.0.2
-## explicit; go 1.12
-# github.com/inconshreveable/mousetrap v1.1.0
-## explicit; go 1.18
 # github.com/jinzhu/copier v0.4.0
 ## explicit; go 1.13
 github.com/jinzhu/copier
-# github.com/mattn/go-colorable v0.1.14
-## explicit; go 1.18
-# github.com/mattn/go-isatty v0.0.20
-## explicit; go 1.15
-# github.com/mattn/go-runewidth v0.0.16
-## explicit; go 1.9
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/rivo/uniseg v0.4.7
-## explicit; go 1.18
-# github.com/russross/blackfriday/v2 v2.1.0
-## explicit
-# github.com/spf13/cobra v1.9.1
-## explicit; go 1.15
-# github.com/spf13/pflag v1.0.6
-## explicit; go 1.12
 # github.com/stretchr/testify v1.10.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
@@ -96,10 +62,6 @@ github.com/valyala/bytebufferpool
 # github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 ## explicit; go 1.19
 github.com/xo/terminfo
-# go.starlark.net v0.0.0-20250603171236-27fdb1d4744d
-## explicit; go 1.19
-# golang.org/x/arch v0.18.0
-## explicit; go 1.23.0
 # golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476
 ## explicit; go 1.23.0
 # golang.org/x/oauth2 v0.30.0
@@ -116,8 +78,6 @@ golang.org/x/sync/errgroup
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/telemetry v0.0.0-20250611175808-9627e99781a7
-## explicit; go 1.23.0
 # golang.org/x/term v0.29.0
 ## explicit; go 1.18
 golang.org/x/term

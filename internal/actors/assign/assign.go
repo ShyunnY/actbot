@@ -70,20 +70,20 @@ func (a *actor) Handler() error {
 		if err := actors.AddReaction(a.ghClient, actors.CommendReaction, repo.GetFullName(), comment.GetID()); err != nil {
 			return err
 		}
-		slog.Infof("add a reaction '%s' to comment %d of issue #%d", actors.CommendReaction, comment.GetID(), issue.GetNumber())
+		a.logger.Infof("add a reaction '%s' to comment %d of issue #%d", actors.CommendReaction, comment.GetID(), issue.GetNumber())
 
 		if err := actors.RemoveLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), actors.HelpWantedLabel); err != nil {
 			return err
 		}
-		slog.Infof("remove '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
+		a.logger.Infof("remove '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
 
-		slog.Infof("assigned issue to '%s'", loginUser.GetLogin())
+		a.logger.Infof("assigned issue to '%s'", loginUser.GetLogin())
 	} else {
 		// if it has been unassigned to the login user, we will write back a comment
 		if !isAssignLoginUser(loginUser, assignees) {
 			err := actors.AddComment(
 				a.ghClient,
-				fmt.Sprintf("@%s %s", loginUser.GetLogin(), "This issue is no assigned to you. Please do not try to unassign it"),
+				fmt.Sprintf("@%s %s", loginUser.GetLogin(), "This issue is no assigned to you. Please do not try to unassign it again"),
 				repo.GetFullName(),
 				issue.GetNumber(),
 			)
@@ -103,9 +103,9 @@ func (a *actor) Handler() error {
 		if err := actors.AddLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), actors.HelpWantedLabel); err != nil {
 			return err
 		}
-		slog.Infof("add '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
+		a.logger.Infof("add '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
 
-		slog.Infof("unassigned issue to '%s'", loginUser.GetLogin())
+		a.logger.Infof("unassigned issue to '%s'", loginUser.GetLogin())
 	}
 
 	return nil

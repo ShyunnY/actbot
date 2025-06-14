@@ -1,0 +1,26 @@
+name: Retest Action on PR Comment
+
+on:
+  issue_comment:
+    types: [ created ]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  retest:
+    if: ${{ !github.event.issue.pull_request }}
+    name: Retest
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: ./
+        name: Actbot Action
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

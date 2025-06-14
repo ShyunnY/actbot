@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	// initialize the global logger
 	logger = func() *slog.Logger {
 		return slog.NewWithConfig(func(inner *slog.Logger) {
 			consoleHandler := handler.NewConsoleHandler(slog.AllLevels)

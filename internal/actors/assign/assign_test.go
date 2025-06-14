@@ -1,16 +1,9 @@
 package assign
 
 import (
-	"context"
-	"errors"
-	"os"
 	"testing"
 
-	"github.com/google/go-github/v72/github"
-	"github.com/gookit/slog"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/oauth2"
-	oauthGh "golang.org/x/oauth2/github"
 )
 
 func TestCommentBodyMatch(t *testing.T) {
@@ -57,34 +50,4 @@ func TestCommentBodyMatch(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestDemo(t *testing.T) {
-	ghToken := os.Getenv("GITHUB_TOKEN")
-	ghClient, err := initGitHubClient(ghToken)
-	assert.NoError(t, err)
-
-	issueComment, _, err := ghClient.Issues.GetComment(context.Background(), "ShyunnY", "sw-go", 2965380428)
-	assert.NoError(t, err)
-
-	issue, _, _ := ghClient.Issues.Get(context.Background(), "ShyunnY", "sw-go", 1)
-	assert.NotNil(t, issue)
-
-	slog.Println(*issueComment)
-}
-
-func initGitHubClient(ghToken string) (*github.Client, error) {
-	if len(ghToken) == 0 {
-		return nil, errors.New("empty github token")
-	}
-
-	oauthConfig := oauth2.Config{Endpoint: oauthGh.Endpoint}
-	oClient := oauthConfig.Client(
-		context.Background(),
-		&oauth2.Token{AccessToken: ghToken},
-	)
-
-	ghClient := github.NewClient(oClient)
-
-	return ghClient, nil
 }

@@ -1,13 +1,16 @@
 name: "Actbot Action"
-description: "A simple GitHub Action"
 author: "ShyunnY"
-
+description: "A robot for handling comment instructions in issues and PRs"
 inputs:
   token:
-    description: "GitHub token"
-    required: true
+    description: >
+      GitHub token used to create and remove comments. By default, this uses the
+      repository token provided by GitHub Actions. You can customize the user by
+      replacing this token with a user token which has write-access to your
+      repository. Note that the token will be accessible to all repository
+      collaborators.
     default: ${{ github.token }}
-
+    required: true
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -16,4 +19,4 @@ runs:
 
 branding:
   color: blue
-  icon: activity
+  icon: cloud
