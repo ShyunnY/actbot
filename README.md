@@ -6,7 +6,7 @@
 
 * [X] `/[un] assign` in Issue
 
-:rocket: Goals of the second phase
+:memo: Goals of the second phase
 
 * [ ] `/lgtm` in PR 
 
