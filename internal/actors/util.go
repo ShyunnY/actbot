@@ -40,23 +40,29 @@ func AddLabelToIssue(ghClient *github.Client, fullName string, issueNumber int, 
 }
 
 func RemoveLabelToIssue(ghClient *github.Client, fullName string, issueNumber int, label string) error {
-	var (
-		ctx         = context.Background()
-		owner, repo = GetOwnerRepo(fullName)
-	)
+	owner, repo := GetOwnerRepo(fullName)
 
-	existLabel, _, err := ghClient.Issues.GetLabel(
-		ctx,
+	issue, _, err := ghClient.Issues.Get(
+		context.Background(),
 		owner,
 		repo,
-		label,
+		issueNumber,
 	)
 	switch {
 	case err != nil:
 		return err
-	case existLabel == nil:
+	case issue == nil || len(issue.Labels) == 0:
 		return nil
 	default:
+		ret := true
+		for _, issueLabel := range issue.Labels {
+			if issueLabel.GetName() == label {
+				ret = false
+			}
+		}
+		if ret {
+			return nil
+		}
 	}
 
 	if _, err := ghClient.Issues.RemoveLabelForIssue(
