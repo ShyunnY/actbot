@@ -115,7 +115,7 @@ func (a *actor) Capture(event actors.GenericEvent) bool {
 		return false
 	}
 
-	if !commentEvent.Issue.IsPullRequest() {
+	if !commentEvent.Issue.IsPullRequest() || len(commentEvent.Comment.GetBody()) == 0 {
 		return false
 	}
 	if commentEvent.Issue.GetClosedBy() != nil || !commentEvent.Issue.GetClosedAt().IsZero() {

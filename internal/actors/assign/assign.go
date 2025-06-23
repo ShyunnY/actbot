@@ -65,6 +65,7 @@ func (a *actor) Handler() error {
 		); err != nil {
 			return err
 		}
+		a.logger.Infof("assigned issue to '%s'", loginUser.GetLogin())
 
 		if err := actors.AddReaction(a.ghClient, actors.CommendReaction, repo.GetFullName(), comment.GetID()); err != nil {
 			return err
@@ -75,8 +76,6 @@ func (a *actor) Handler() error {
 			return err
 		}
 		a.logger.Infof("remove '%s' label from issue #%d", actors.HelpWantedLabel, issue.GetNumber())
-
-		a.logger.Infof("assigned issue to '%s'", loginUser.GetLogin())
 	} else {
 		// if it has been unassigned to the login user, we will write back a comment
 		if !isAssignLoginUser(loginUser, assignees) {

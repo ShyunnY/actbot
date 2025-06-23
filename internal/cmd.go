@@ -136,9 +136,8 @@ func copyEvent(src *actors.GenericEvent) (*actors.GenericEvent, error) {
 
 func exit(format string, err ...any) {
 	// avoid losing the call stack information
-	cs := logger.CallerSkip
-	logger.CallerSkip = cs + 1
+	logger.CallerSkip += 1
 
-	logger.Errorf(format, err)
+	logger.Errorf(format, err...)
 	os.Exit(1)
 }
