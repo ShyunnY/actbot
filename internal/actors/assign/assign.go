@@ -25,7 +25,7 @@ type actor struct {
 	add   bool
 }
 
-func NewAssignActor(ghClient *github.Client, logger *slog.Logger) actors.Actor {
+func NewAssignActor(ghClient *github.Client, logger *slog.Logger, _ *actors.Options) actors.Actor {
 	return &actor{
 		ghClient: ghClient,
 		logger:   logger,

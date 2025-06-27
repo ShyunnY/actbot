@@ -27,3 +27,12 @@ type GenericEvent struct {
 	// This represents the actual GitHub events
 	Event any
 }
+
+type IMClient interface {
+	SendMessage(issueNumber int64, content string) error
+}
+
+// Options Extended parameter configuration
+type Options struct {
+	IMClient IMClient
+}

@@ -27,7 +27,7 @@ type actor struct {
 	event github.IssueCommentEvent
 }
 
-func NewRetestActor(ghClient *github.Client, logger *slog.Logger) actors.Actor {
+func NewRetestActor(ghClient *github.Client, logger *slog.Logger, _ *actors.Options) actors.Actor {
 	return &actor{
 		ghClient: ghClient,
 		logger:   logger,

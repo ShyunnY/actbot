@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ShyunnY/actbot/internal/actors/syncer/im"
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
@@ -27,10 +28,12 @@ var logger = func() *slog.Logger {
 }()
 
 func Setup() error {
+
 	var (
-		ghToken     = os.Getenv("token")
-		ghEvent     = os.Getenv("GITHUB_EVENT_NAME")
-		ghEventPath = os.Getenv("GITHUB_EVENT_PATH")
+		ghToken          = os.Getenv("token")
+		ghEvent          = os.Getenv("GITHUB_EVENT_NAME")
+		ghEventPath      = os.Getenv("GITHUB_EVENT_PATH")
+		dingTalkWebHooks = os.Getenv("DINGTALK_WEBHOOK_TOKENS")
 	)
 
 	gitHubClient, err := InitGitHubClient(ghToken)
@@ -38,14 +41,22 @@ func Setup() error {
 		exit("failed to init GitHub client by err: %v", err)
 	}
 
-	if err := dispatch(ghEvent, ghEventPath, gitHubClient); err != nil {
+	dingTalkClient := im.NewDingTalkClient(dingTalkWebHooks)
+	if dingTalkClient == nil {
+		exit("failed to init DingTalk client, webhook URL is empty")
+	}
+
+	if err := dispatch(ghEvent, ghEventPath, gitHubClient, &actors.Options{
+		IMClient: dingTalkClient,
+	}); err != nil {
 		exit("failed to dispatch event by err: %v", err)
 	}
 
 	return nil
 }
 
-func dispatch(ghEvent, ghEventPath string, ghClient *github.Client) error {
+func dispatch(ghEvent, ghEventPath string, ghClient *github.Client, opts *actors.Options) error {
+
 	if len(ghEvent) == 0 {
 		return errors.New("empty github event")
 	}
@@ -71,7 +82,7 @@ func dispatch(ghEvent, ghEventPath string, ghClient *github.Client) error {
 				return err
 			}
 
-			actor := fn(ghClient, logger)
+			actor := fn(ghClient, logger, opts)
 			if actor.Capture(*event) {
 				if err = actor.Handler(); err != nil {
 					exit("actor %s handle by err: %s", actor.Name(), err)
