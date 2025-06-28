@@ -22,15 +22,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ShyunnY/actbot/internal/actors"
 	"github.com/ShyunnY/actbot/internal/actors/syncer/im"
+
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/jinzhu/copier"
 	"golang.org/x/oauth2"
 	oauthGh "golang.org/x/oauth2/github"
-
-	"github.com/ShyunnY/actbot/internal/actors"
 )
 
 // initialize the global logger

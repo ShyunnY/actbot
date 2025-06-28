@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package area
+package labeler
 
 import (
 	"io"
@@ -35,13 +35,13 @@ func TestAreaCommentBodyMatch(t *testing.T) {
 		expect   bool
 	}{
 		{
-			caseName: "Match the area instruction",
-			comment:  "/area bugfix",
+			caseName: "Match the labeler instruction",
+			comment:  "/labeler bugfix",
 			expect:   true,
 		},
 		{
-			caseName: "Match the instructions that show multiple spaces after area",
-			comment:  "/area    enhancement",
+			caseName: "Match the instructions that show multiple spaces after labeler",
+			comment:  "/labeler    enhancement",
 			expect:   true,
 		},
 		{
@@ -95,11 +95,11 @@ func TestLabelerCapture(t *testing.T) {
 		expect   bool
 	}{
 		{
-			caseName: "labeler actor capture and handle events for area",
+			caseName: "labeler actor capture and handle events for labeler",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/area feature"),
+						Body: github.Ptr[string]("/labeler feature"),
 					},
 					Issue: &github.Issue{
 						PullRequestLinks: &github.PullRequestLinks{
@@ -131,7 +131,7 @@ func TestLabelerCapture(t *testing.T) {
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/area feature"),
+						Body: github.Ptr[string]("/labeler feature"),
 					},
 					Issue: &github.Issue{},
 				},
@@ -159,7 +159,7 @@ func TestLabelerCapture(t *testing.T) {
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/area feature"),
+						Body: github.Ptr[string]("/labeler feature"),
 					},
 					Issue: &github.Issue{
 						PullRequestLinks: &github.PullRequestLinks{

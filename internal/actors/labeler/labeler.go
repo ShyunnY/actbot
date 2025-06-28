@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package area
+package labeler
 
 import (
 	"context"
@@ -29,12 +29,15 @@ import (
 
 const (
 	labelerActorName = "LabelerActor"
-	labelPrefix      = "area/"
+	areaPrefix       = "area/"
+	kindPrefix       = "kind/"
 )
 
 var (
 	areaRegexp   = regexp.MustCompile(`^/area\s+(.+)$`)
 	unareaRegexp = regexp.MustCompile(`^/unarea\s+(.+)$`)
+	kindRegexp   = regexp.MustCompile(`^/kind\s+(.+)$`)
+	unkindRegexp = regexp.MustCompile(`^/unkind\s+(.+)$`)
 )
 
 type actor struct {
@@ -52,6 +55,7 @@ func NewLabelerActor(ghClient *github.Client, logger *slog.Logger, _ *actors.Opt
 }
 
 func (a *actor) Handler() error {
+
 	var (
 		issue           = a.event.GetIssue()
 		repo            = a.event.GetRepo()
@@ -64,21 +68,39 @@ func (a *actor) Handler() error {
 
 	var err error
 	if areaMatch := areaRegexp.FindStringSubmatch(body); areaMatch != nil {
-		labels := strings.Fields(areaMatch[1]) // 分割多个标签
+		labels := strings.Fields(areaMatch[1]) // Split multiple labels
 		for _, label := range labels {
-			label = labelPrefix + label
+			label = areaPrefix + label
 			err = a.checkAndAddLabel(owner, repoName, issue.GetNumber(), label)
 			if err != nil {
-				return err // 如果添加失败，返回错误
+				return err // Return error if adding fails
 			}
 		}
 	} else if unareaMatch := unareaRegexp.FindStringSubmatch(body); unareaMatch != nil {
-		labels := strings.Fields(unareaMatch[1]) // 分割多个标签
+		labels := strings.Fields(unareaMatch[1]) // Split multiple labels
 		for _, label := range labels {
-			label = labelPrefix + label
+			label = areaPrefix + label
 			err = actors.RemoveLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), label)
 			if err != nil {
-				return err // 如果移除失败，返回错误
+				return err // Return error if removing fails
+			}
+		}
+	} else if kindMatch := kindRegexp.FindStringSubmatch(body); kindMatch != nil {
+		labels := strings.Fields(kindMatch[1])
+		for _, label := range labels {
+			label = kindPrefix + label
+			err = a.checkAndAddLabel(owner, repoName, issue.GetNumber(), label)
+			if err != nil {
+				return err
+			}
+		}
+	} else if unkindMatch := unkindRegexp.FindStringSubmatch(body); unkindMatch != nil {
+		labels := strings.Fields(unkindMatch[1])
+		for _, label := range labels {
+			label = kindPrefix + label
+			err = actors.RemoveLabelToIssue(a.ghClient, repo.GetFullName(), issue.GetNumber(), label)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -136,7 +158,10 @@ func (a *actor) Capture(event actors.GenericEvent) bool {
 		return false
 	}
 
-	if areaRegexp.MatchString(commentEvent.Comment.GetBody()) || unareaRegexp.MatchString(commentEvent.Comment.GetBody()) {
+	if areaRegexp.MatchString(commentEvent.Comment.GetBody()) ||
+		unareaRegexp.MatchString(commentEvent.Comment.GetBody()) ||
+		kindRegexp.MatchString(commentEvent.Comment.GetBody()) ||
+		unkindRegexp.MatchString(commentEvent.Comment.GetBody()) {
 		a.event = commentEvent
 		return true
 	}

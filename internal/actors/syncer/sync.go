@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/ShyunnY/actbot/internal/actors"
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
-
-	"github.com/ShyunnY/actbot/internal/actors"
 )
 
 const (
 	syncerActorName = "SyncerActor"
+	syncLabel       = "sync" // Define the sync label
 )
 
 var syncRegexp = regexp.MustCompile(`^/sync\s*$`)
@@ -39,7 +39,6 @@ type actor struct {
 }
 
 func NewSyncerActor(ghClient *github.Client, logger *slog.Logger, opts *actors.Options) actors.Actor {
-
 	return &actor{
 		ghClient: ghClient,
 		logger:   logger,
@@ -48,24 +47,30 @@ func NewSyncerActor(ghClient *github.Client, logger *slog.Logger, opts *actors.O
 }
 
 func (a *actor) Handler() error {
-
 	issue := a.event.GetIssue()
 	comment := a.event.GetComment()
 	loginUser := comment.GetUser().GetLogin()
 
 	message := fmt.Sprintf("User @%s has requested to sync issue #%d: %s", loginUser, issue.GetNumber(), issue.GetTitle())
 
+	// Send message to IM
 	if err := a.imClient.SendMessage(*issue.ID, message); err != nil {
 		a.logger.Errorf("failed to send message to IM: %v", err)
 		return err
 	}
 
-	a.logger.Infof("message sent to IM: %s", message)
+	a.logger.Info("message sent to IM")
+
+	// Add sync label to the issue
+	if err := actors.AddLabelToIssue(a.ghClient, a.event.GetRepo().GetFullName(), issue.GetNumber(), syncLabel); err != nil {
+		a.logger.Errorf("failed to add label '%s' to issue #%d: %v", syncLabel, issue.GetNumber(), err)
+		return err
+	}
+
 	return nil
 }
 
 func (a *actor) Capture(event actors.GenericEvent) bool {
-
 	genericEvent := event.Event
 	commentEvent, ok := genericEvent.(github.IssueCommentEvent)
 	if !ok {
