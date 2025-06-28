@@ -21,10 +21,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ShyunnY/actbot/internal/actors"
-
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
+
+	"github.com/ShyunnY/actbot/internal/actors"
 )
 
 const (
@@ -55,7 +55,6 @@ func NewLabelerActor(ghClient *github.Client, logger *slog.Logger, _ *actors.Opt
 }
 
 func (a *actor) Handler() error {
-
 	var (
 		issue           = a.event.GetIssue()
 		repo            = a.event.GetRepo()

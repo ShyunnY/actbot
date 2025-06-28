@@ -16,14 +16,14 @@
 package internal
 
 import (
+	"github.com/google/go-github/v72/github"
+	"github.com/gookit/slog"
+
 	"github.com/ShyunnY/actbot/internal/actors"
 	"github.com/ShyunnY/actbot/internal/actors/assign"
 	"github.com/ShyunnY/actbot/internal/actors/labeler"
 	"github.com/ShyunnY/actbot/internal/actors/retest"
 	"github.com/ShyunnY/actbot/internal/actors/syncer"
-
-	"github.com/google/go-github/v72/github"
-	"github.com/gookit/slog"
 )
 
 type GitHubEventType string

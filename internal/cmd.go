@@ -22,15 +22,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ShyunnY/actbot/internal/actors"
-	"github.com/ShyunnY/actbot/internal/actors/syncer/im"
-
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/jinzhu/copier"
 	"golang.org/x/oauth2"
 	oauthGh "golang.org/x/oauth2/github"
+
+	"github.com/ShyunnY/actbot/internal/actors"
+	"github.com/ShyunnY/actbot/internal/actors/syncer/im"
 )
 
 // initialize the global logger
@@ -43,7 +43,6 @@ var logger = func() *slog.Logger {
 }()
 
 func Setup() error {
-
 	var (
 		ghToken          = os.Getenv("token")
 		ghEvent          = os.Getenv("GITHUB_EVENT_NAME")
@@ -71,7 +70,6 @@ func Setup() error {
 }
 
 func dispatch(ghEvent, ghEventPath string, ghClient *github.Client, opts *actors.Options) error {
-
 	if len(ghEvent) == 0 {
 		return errors.New("empty github event")
 	}
