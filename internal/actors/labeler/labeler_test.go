@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package retest
+package labeler
 
 import (
 	"io"
 	"testing"
-	"time"
 
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
@@ -28,114 +27,136 @@ import (
 	"github.com/ShyunnY/actbot/internal/actors"
 )
 
-func TestRetestCommentBodyMatch(t *testing.T) {
+func TestLabelerCommentBodyMatch(t *testing.T) {
 	cases := []struct {
 		caseName string
 		comment  string
 		expect   bool
 	}{
 		{
-			caseName: "Match the retest instruction",
-			comment:  "/retest",
+			caseName: "Match area instruction",
+			comment:  "/area label1",
 			expect:   true,
 		},
 		{
-			caseName: "Match the instructions that show multiple spaces after retest",
-			comment:  "/retest    ",
+			caseName: "Match unarea instruction",
+			comment:  "/unarea label1",
 			expect:   true,
 		},
 		{
-			caseName: "unmatched instructions",
-			comment:  "/redo",
+			caseName: "Match kind instruction",
+			comment:  "/kind label1",
+			expect:   true,
+		},
+		{
+			caseName: "Match unkind instruction",
+			comment:  "/unkind label1",
+			expect:   true,
+		},
+		{
+			caseName: "Unmatched instruction",
+			comment:  "/label",
 			expect:   false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
-			assert.Equal(t, tc.expect, retestRegexp.MatchString(tc.comment))
+			var regexpMatch bool
+			if areaRegexp.MatchString(tc.comment) || unareaRegexp.MatchString(tc.comment) ||
+				kindRegexp.MatchString(tc.comment) || unkindRegexp.MatchString(tc.comment) {
+				regexpMatch = true
+			}
+			assert.Equal(t, tc.expect, regexpMatch)
 		})
 	}
 }
 
-func TestRetestCapture(t *testing.T) {
+func TestLabelerCapture(t *testing.T) {
 	cases := []struct {
 		caseName string
 		event    actors.GenericEvent
 		expect   bool
 	}{
 		{
-			caseName: "retest actor capture and handle events",
+			caseName: "Capture area command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest"),
+						Body: github.Ptr[string]("/area label1"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: true,
 		},
 		{
-			caseName: "retest actor does not capture issue that are not pull request",
+			caseName: "Capture unarea command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest"),
+						Body: github.Ptr[string]("/unarea label1"),
 					},
-					Issue: &github.Issue{},
+					Issue: &github.Issue{
+						PullRequestLinks: nil,
+					},
 				},
 			},
-			expect: false,
+			expect: true,
 		},
 		{
-			caseName: "retest actor does not capture empty comment pull request",
+			caseName: "Capture kind command",
+			event: actors.GenericEvent{
+				Event: github.IssueCommentEvent{
+					Comment: &github.IssueComment{
+						Body: github.Ptr[string]("/kind label1"),
+					},
+					Issue: &github.Issue{
+						PullRequestLinks: nil,
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			caseName: "Capture unkind command",
+			event: actors.GenericEvent{
+				Event: github.IssueCommentEvent{
+					Comment: &github.IssueComment{
+						Body: github.Ptr[string]("/unkind label1"),
+					},
+					Issue: &github.Issue{
+						PullRequestLinks: nil,
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			caseName: "Do not capture empty comment",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
 						Body: github.Ptr[string](""),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: false,
 		},
 		{
-			caseName: "retest actor does not capture closed pull request",
+			caseName: "Do not capture unmatched command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest"),
+						Body: github.Ptr[string]("/label label1"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
-						ClosedAt: &github.Timestamp{Time: time.Now()},
-					},
-				},
-			},
-			expect: false,
-		},
-		{
-			caseName: "retest actor does not capture unmatched retestRegexp comment body pull request",
-			event: actors.GenericEvent{
-				Event: github.IssueCommentEvent{
-					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest1"),
-					},
-					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
@@ -145,13 +166,12 @@ func TestRetestCapture(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
-			retestActor := &actor{
-				// a noop logger for testing only
+			labelerActor := &actor{
 				logger: slog.NewWithConfig(func(l *slog.Logger) {
 					l.PushHandler(handler.NewIOWriterHandler(io.Discard, slog.AllLevels))
 				}),
 			}
-			assert.Equal(t, tc.expect, retestActor.Capture(tc.event))
+			assert.Equal(t, tc.expect, labelerActor.Capture(tc.event))
 		})
 	}
 }

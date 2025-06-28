@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package retest
+package syncer
 
 import (
 	"io"
 	"testing"
-	"time"
 
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
@@ -28,114 +27,93 @@ import (
 	"github.com/ShyunnY/actbot/internal/actors"
 )
 
-func TestRetestCommentBodyMatch(t *testing.T) {
+func TestSyncerCommentBodyMatch(t *testing.T) {
 	cases := []struct {
 		caseName string
 		comment  string
 		expect   bool
 	}{
 		{
-			caseName: "Match the retest instruction",
-			comment:  "/retest",
+			caseName: "Match sync instruction",
+			comment:  "/sync",
 			expect:   true,
 		},
 		{
-			caseName: "Match the instructions that show multiple spaces after retest",
-			comment:  "/retest    ",
+			caseName: "Match sync instruction with spaces",
+			comment:  "/sync    ",
 			expect:   true,
 		},
 		{
-			caseName: "unmatched instructions",
-			comment:  "/redo",
+			caseName: "Unmatched instruction",
+			comment:  "/resync",
 			expect:   false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
-			assert.Equal(t, tc.expect, retestRegexp.MatchString(tc.comment))
+			assert.Equal(t, tc.expect, syncRegexp.MatchString(tc.comment))
 		})
 	}
 }
 
-func TestRetestCapture(t *testing.T) {
+func TestSyncerCapture(t *testing.T) {
 	cases := []struct {
 		caseName string
 		event    actors.GenericEvent
 		expect   bool
 	}{
 		{
-			caseName: "retest actor capture and handle events",
+			caseName: "Capture sync command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest"),
+						Body: github.Ptr[string]("/sync"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: true,
 		},
 		{
-			caseName: "retest actor does not capture issue that are not pull request",
-			event: actors.GenericEvent{
-				Event: github.IssueCommentEvent{
-					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest"),
-					},
-					Issue: &github.Issue{},
-				},
-			},
-			expect: false,
-		},
-		{
-			caseName: "retest actor does not capture empty comment pull request",
+			caseName: "Do not capture empty comment",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
 						Body: github.Ptr[string](""),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: false,
 		},
 		{
-			caseName: "retest actor does not capture closed pull request",
+			caseName: "Do not capture unmatched command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest"),
+						Body: github.Ptr[string]("/resync"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
-						ClosedAt: &github.Timestamp{Time: time.Now()},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: false,
 		},
 		{
-			caseName: "retest actor does not capture unmatched retestRegexp comment body pull request",
+			caseName: "Do not capture pull requests",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/retest1"),
+						Body: github.Ptr[string]("/sync"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: &github.PullRequestLinks{},
 					},
 				},
 			},
@@ -145,13 +123,12 @@ func TestRetestCapture(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
-			retestActor := &actor{
-				// a noop logger for testing only
+			syncerActor := &actor{
 				logger: slog.NewWithConfig(func(l *slog.Logger) {
 					l.PushHandler(handler.NewIOWriterHandler(io.Discard, slog.AllLevels))
 				}),
 			}
-			assert.Equal(t, tc.expect, retestActor.Capture(tc.event))
+			assert.Equal(t, tc.expect, syncerActor.Capture(tc.event))
 		})
 	}
 }
