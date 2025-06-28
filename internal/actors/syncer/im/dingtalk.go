@@ -32,6 +32,11 @@ func NewDingTalkClient(webhookURL string) *DingTalkClient {
 }
 
 func (d *DingTalkClient) SendMessage(issueNumber int64, content string) error {
+
+	if content == "" {
+		return fmt.Errorf("content cannot be empty")
+	}
+
 	message := map[string]interface{}{
 		"msgtype": "markdown",
 		"markdown": map[string]string{

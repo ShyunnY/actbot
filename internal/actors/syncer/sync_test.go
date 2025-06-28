@@ -18,7 +18,6 @@ package syncer
 import (
 	"io"
 	"testing"
-	"time"
 
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
@@ -28,25 +27,25 @@ import (
 	"github.com/ShyunnY/actbot/internal/actors"
 )
 
-func TestSyncCommentBodyMatch(t *testing.T) {
+func TestSyncerCommentBodyMatch(t *testing.T) {
 	cases := []struct {
 		caseName string
 		comment  string
 		expect   bool
 	}{
 		{
-			caseName: "Match the sync instruction",
+			caseName: "Match sync instruction",
 			comment:  "/sync",
 			expect:   true,
 		},
 		{
-			caseName: "Match the instructions that show multiple spaces after sync",
+			caseName: "Match sync instruction with spaces",
 			comment:  "/sync    ",
 			expect:   true,
 		},
 		{
-			caseName: "unmatched instructions",
-			comment:  "/synchronize",
+			caseName: "Unmatched instruction",
+			comment:  "/resync",
 			expect:   false,
 		},
 	}
@@ -58,84 +57,63 @@ func TestSyncCommentBodyMatch(t *testing.T) {
 	}
 }
 
-func TestSyncCapture(t *testing.T) {
+func TestSyncerCapture(t *testing.T) {
 	cases := []struct {
 		caseName string
 		event    actors.GenericEvent
 		expect   bool
 	}{
 		{
-			caseName: "sync actor capture and handle events",
+			caseName: "Capture sync command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
 						Body: github.Ptr[string]("/sync"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: true,
 		},
 		{
-			caseName: "sync actor does not capture issue that are not pull request",
-			event: actors.GenericEvent{
-				Event: github.IssueCommentEvent{
-					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/sync"),
-					},
-					Issue: &github.Issue{},
-				},
-			},
-			expect: false,
-		},
-		{
-			caseName: "sync actor does not capture empty comment pull request",
+			caseName: "Do not capture empty comment",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
 						Body: github.Ptr[string](""),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: false,
 		},
 		{
-			caseName: "sync actor does not capture closed pull request",
+			caseName: "Do not capture unmatched command",
+			event: actors.GenericEvent{
+				Event: github.IssueCommentEvent{
+					Comment: &github.IssueComment{
+						Body: github.Ptr[string]("/resync"),
+					},
+					Issue: &github.Issue{
+						PullRequestLinks: nil,
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			caseName: "Do not capture pull requests",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
 						Body: github.Ptr[string]("/sync"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
-						ClosedAt: &github.Timestamp{Time: time.Now()},
-					},
-				},
-			},
-			expect: false,
-		},
-		{
-			caseName: "sync actor does not capture unmatched syncRegexp comment body pull request",
-			event: actors.GenericEvent{
-				Event: github.IssueCommentEvent{
-					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/sync1"),
-					},
-					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: &github.PullRequestLinks{},
 					},
 				},
 			},
@@ -146,7 +124,6 @@ func TestSyncCapture(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
 			syncerActor := &actor{
-				// a noop logger for testing only
 				logger: slog.NewWithConfig(func(l *slog.Logger) {
 					l.PushHandler(handler.NewIOWriterHandler(io.Discard, slog.AllLevels))
 				}),

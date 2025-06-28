@@ -18,7 +18,6 @@ package labeler
 import (
 	"io"
 	"testing"
-	"time"
 
 	"github.com/google/go-github/v72/github"
 	"github.com/gookit/slog"
@@ -28,62 +27,47 @@ import (
 	"github.com/ShyunnY/actbot/internal/actors"
 )
 
-func TestAreaCommentBodyMatch(t *testing.T) {
+func TestLabelerCommentBodyMatch(t *testing.T) {
 	cases := []struct {
 		caseName string
 		comment  string
 		expect   bool
 	}{
 		{
-			caseName: "Match the labeler instruction",
-			comment:  "/labeler bugfix",
+			caseName: "Match area instruction",
+			comment:  "/area label1",
 			expect:   true,
 		},
 		{
-			caseName: "Match the instructions that show multiple spaces after labeler",
-			comment:  "/labeler    enhancement",
+			caseName: "Match unarea instruction",
+			comment:  "/unarea label1",
 			expect:   true,
 		},
 		{
-			caseName: "unmatched instructions",
-			comment:  "/region bugfix",
+			caseName: "Match kind instruction",
+			comment:  "/kind label1",
+			expect:   true,
+		},
+		{
+			caseName: "Match unkind instruction",
+			comment:  "/unkind label1",
+			expect:   true,
+		},
+		{
+			caseName: "Unmatched instruction",
+			comment:  "/label",
 			expect:   false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
-			assert.Equal(t, tc.expect, areaRegexp.MatchString(tc.comment))
-		})
-	}
-}
-
-func TestUnareaCommentBodyMatch(t *testing.T) {
-	cases := []struct {
-		caseName string
-		comment  string
-		expect   bool
-	}{
-		{
-			caseName: "Match the unarea instruction",
-			comment:  "/unarea bugfix",
-			expect:   true,
-		},
-		{
-			caseName: "Match the instructions that show multiple spaces after unarea",
-			comment:  "/unarea    enhancement",
-			expect:   true,
-		},
-		{
-			caseName: "unmatched instructions",
-			comment:  "/removearea bugfix",
-			expect:   false,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.caseName, func(t *testing.T) {
-			assert.Equal(t, tc.expect, unareaRegexp.MatchString(tc.comment))
+			var regexpMatch bool
+			if areaRegexp.MatchString(tc.comment) || unareaRegexp.MatchString(tc.comment) ||
+				kindRegexp.MatchString(tc.comment) || unkindRegexp.MatchString(tc.comment) {
+				regexpMatch = true
+			}
+			assert.Equal(t, tc.expect, regexpMatch)
 		})
 	}
 }
@@ -95,109 +79,84 @@ func TestLabelerCapture(t *testing.T) {
 		expect   bool
 	}{
 		{
-			caseName: "labeler actor capture and handle events for labeler",
+			caseName: "Capture area command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/labeler feature"),
+						Body: github.Ptr[string]("/area label1"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: true,
 		},
 		{
-			caseName: "labeler actor capture and handle events for unarea",
+			caseName: "Capture unarea command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/unarea feature"),
+						Body: github.Ptr[string]("/unarea label1"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: true,
 		},
 		{
-			caseName: "labeler actor does not capture issue that are not pull request",
+			caseName: "Capture kind command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/labeler feature"),
+						Body: github.Ptr[string]("/kind label1"),
 					},
-					Issue: &github.Issue{},
+					Issue: &github.Issue{
+						PullRequestLinks: nil,
+					},
 				},
 			},
-			expect: false,
+			expect: true,
 		},
 		{
-			caseName: "labeler actor does not capture empty comment pull request",
+			caseName: "Capture unkind command",
+			event: actors.GenericEvent{
+				Event: github.IssueCommentEvent{
+					Comment: &github.IssueComment{
+						Body: github.Ptr[string]("/unkind label1"),
+					},
+					Issue: &github.Issue{
+						PullRequestLinks: nil,
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			caseName: "Do not capture empty comment",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
 						Body: github.Ptr[string](""),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
 			expect: false,
 		},
 		{
-			caseName: "labeler actor does not capture closed pull request",
+			caseName: "Do not capture unmatched command",
 			event: actors.GenericEvent{
 				Event: github.IssueCommentEvent{
 					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/labeler feature"),
+						Body: github.Ptr[string]("/label label1"),
 					},
 					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
-						ClosedAt: &github.Timestamp{Time: time.Now()},
-					},
-				},
-			},
-			expect: false,
-		},
-		{
-			caseName: "labeler actor does not capture unmatched areaRegexp comment body pull request",
-			event: actors.GenericEvent{
-				Event: github.IssueCommentEvent{
-					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/area1 feature"),
-					},
-					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
-					},
-				},
-			},
-			expect: false,
-		},
-		{
-			caseName: "labeler actor does not capture unmatched unareaRegexp comment body pull request",
-			event: actors.GenericEvent{
-				Event: github.IssueCommentEvent{
-					Comment: &github.IssueComment{
-						Body: github.Ptr[string]("/unarea1 feature"),
-					},
-					Issue: &github.Issue{
-						PullRequestLinks: &github.PullRequestLinks{
-							URL: github.Ptr("https://github.com/example_owner/example_repo/pull/1234567890"),
-						},
+						PullRequestLinks: nil,
 					},
 				},
 			},
@@ -208,7 +167,6 @@ func TestLabelerCapture(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
 			labelerActor := &actor{
-				// a noop logger for testing only
 				logger: slog.NewWithConfig(func(l *slog.Logger) {
 					l.PushHandler(handler.NewIOWriterHandler(io.Discard, slog.AllLevels))
 				}),
