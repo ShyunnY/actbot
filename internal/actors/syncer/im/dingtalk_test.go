@@ -59,8 +59,6 @@ func TestSendMessage(t *testing.T) {
 			var err error
 			if tt.expectError {
 				err = client.SendMessage(tt.issueNumber, tt.content)
-			} else {
-				err = client.SendMessage(tt.issueNumber, tt.content)
 			}
 
 			assert.Equal(t, tt.expectError, err != nil)
