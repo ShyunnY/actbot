@@ -1,0 +1,20 @@
+name: Issue and PullRequest Commands
+
+on:
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  actbot:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      issues: write
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

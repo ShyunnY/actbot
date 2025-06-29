@@ -31,6 +31,7 @@ jobs:
       pull-requests: write
       contents: read
       issues: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
