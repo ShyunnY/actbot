@@ -9,6 +9,7 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/oauth2 v0.30.0
+	k8s.io/apimachinery v0.33.2
 )
 
 require (
@@ -25,6 +26,6 @@ require (
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

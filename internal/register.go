@@ -6,6 +6,7 @@ import (
 
 	"github.com/ShyunnY/actbot/internal/actors"
 	"github.com/ShyunnY/actbot/internal/actors/assign"
+	"github.com/ShyunnY/actbot/internal/actors/label"
 	"github.com/ShyunnY/actbot/internal/actors/retest"
 )
 
@@ -21,5 +22,6 @@ var actorMap = map[GitHubEventType][]RegisterFn{
 	IssueComment: {
 		assign.NewAssignActor,
 		retest.NewRetestActor,
+		label.NewLabelActor,
 	},
 }
