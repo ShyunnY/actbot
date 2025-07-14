@@ -115,11 +115,11 @@ func (a *actor) Handler() error {
 	case len(nonExistRepoLabels) > 0:
 		a.logger.Warnf("The repo is missing labels '(%s)'", strings.Join(nonExistRepoLabels, ","))
 		returnMsg := fmt.Sprintf("These labels '(%s)' cannot be used because they are not configured in the repo.", strings.Join(nonExistRepoLabels, ","))
-		return actors.AddComment(a.ghClient, fmt.Sprintf("@%s %s", loginUser, returnMsg), repo.GetFullName(), issue.GetNumber())
+		return actors.AddComment(a.ghClient, fmt.Sprintf("@%s %s", loginUser.GetLogin(), returnMsg), repo.GetFullName(), issue.GetNumber())
 
 	case len(nonExistIssueLabels) > 0:
-		returnMsg := fmt.Sprintf("These labels '(%s)' cannot be applied to issues because they are not exist in the issue.", strings.Join(nonExistRepoLabels, ","))
-		return actors.AddComment(a.ghClient, fmt.Sprintf("@%s %s", loginUser, returnMsg), repo.GetFullName(), issue.GetNumber())
+		returnMsg := fmt.Sprintf("These labels '(%s)' cannot be applied to issues because they are not exist in the issue.", strings.Join(nonExistIssueLabels, ","))
+		return actors.AddComment(a.ghClient, fmt.Sprintf("@%s %s", loginUser.GetLogin(), returnMsg), repo.GetFullName(), issue.GetNumber())
 	default:
 		return nil
 	}
