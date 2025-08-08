@@ -6,6 +6,7 @@ import (
 
 	"github.com/ShyunnY/actbot/internal/actors"
 	"github.com/ShyunnY/actbot/internal/actors/assign"
+	"github.com/ShyunnY/actbot/internal/actors/cc"
 	"github.com/ShyunnY/actbot/internal/actors/label"
 	"github.com/ShyunnY/actbot/internal/actors/retest"
 )
@@ -23,5 +24,6 @@ var actorMap = map[GitHubEventType][]RegisterFn{
 		assign.NewAssignActor,
 		retest.NewRetestActor,
 		label.NewLabelActor,
+		cc.NewCCActor,
 	},
 }
